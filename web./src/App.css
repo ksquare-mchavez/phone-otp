@@ -1,0 +1,122 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px #0001;
+  padding: 32px;
+  width: 360px;
+  max-width: 90vw;
+}
+
+.auth-title {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #1976d2;
+  letter-spacing: 1px;
+}
+
+.auth-label {
+  font-weight: 500;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+.auth-btn {
+  width: 100%;
+  padding: 12px;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.auth-btn-send {
+  background: #1976d2;
+}
+
+.auth-btn-verify {
+  background: #388e3c;
+}
+
+.auth-message {
+  margin-top: 16px;
+  color: #1976d2;
+  text-align: center;
+  font-weight: 500;
+}
+
+.auth-backend {
+  text-align: left;
+  margin-top: 24px;
+  background: #f4f4f4;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  overflow-x: auto;
+}
+
+.auth-bg {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f6f8fa;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#webpack-dev-server-client-overlay-div {
+  display: none !important;
+}
+
+#webpack-dev-server-client-overlay{
+  display: none !important;
+}
