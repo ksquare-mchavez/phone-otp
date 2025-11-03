@@ -9,17 +9,18 @@ if (!firebase.apps.length) {
 }
 
 function App() {
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+16505551234');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(0); // 0: enter phone, 1: enter OTP
   const [message, setMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [backendResp, setBackendResp] = useState(null);
   const [showRecaptcha, setShowRecaptcha] = useState(true); // toggle for recaptcha widget
 
   // Global error handler for uncaught errors
   useEffect(() => {
     const handleGlobalError = (event) => {
-      setMessage('An unexpected error occurred: ' + (event.reason?.message || event.message || 'Unknown error'));
+      setErrorMessage('An unexpected error occurred: ' + (event.reason?.message || event.message || 'Unknown error'));
     };
     window.addEventListener('unhandledrejection', handleGlobalError);
     window.addEventListener('error', handleGlobalError);
@@ -32,59 +33,34 @@ function App() {
   // reCAPTCHA verifier
   useEffect(() => {
     const initializeRecaptcha = () => {
-      try {
-        if (window.recaptchaVerifier) {
-          window.recaptchaVerifier.clear();
-        }
-        setPhone('+16505551234');
-        setOtp('');
-        setStep(0);
+      if (!window.recaptchaVerifier) {
         window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
           size: showRecaptcha ? 'normal' : 'invisible',
-          callback: (response) => {
-            setMessage('reCAPTCHA Success!');
-            console.info('reCAPTCHA callback (success):', response);
-          },
-          'expired-callback': () => {
-            setMessage('reCAPTCHA expired. Please complete the challenge again.');
-            console.warn('reCAPTCHA expired-callback');
-          },
-          'error-callback': () => {
-            setMessage('reCAPTCHA error occurred.');
-            console.error('reCAPTCHA error-callback');
-          }
+          callback: () => setMessage('reCAPTCHA Success!'),
+          'expired-callback': () => setMessage('reCAPTCHA expired. Please complete the challenge again.'),
+          'error-callback': () => setMessage('reCAPTCHA error occurred.'),
         });
         window.recaptchaVerifier.render();
-      } catch (error) {
-        handleError(error);
       }
     };
+
     initializeRecaptcha();
-    // re-initialize when showRecaptcha changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showRecaptcha]);
 
   const handleError = (error) => {
-    if (error.code === 'auth/network-request-failed') {
-      setMessage('Network error: Please check your internet connection and try again.');
-    } else if (error.code === 'timeout') {
-      setMessage('Timeout: The request took too long. Please try again.');
-    } else {
-      setMessage(error.message || 'An unexpected error occurred.');
-    }
+    const errorMessages = {
+      'auth/network-request-failed': 'Network error: Please check your internet connection and try again.',
+      'timeout': 'Timeout: The request took too long. Please try again.',
+    };
+    setMessage(errorMessages[error.code] || error.message || 'An unexpected error occurred.');
   };
 
   const sendOTP = async () => {
     setMessage('');
     const appVerifier = window.recaptchaVerifier;
-    const timeoutPromise = createTimeoutPromise();
-    console.log('Sending appVerifier', appVerifier);
-    console.log('Sending phone number', phone);
+
     try {
-      const confirmationResult = await Promise.race([
-        firebase.auth().signInWithPhoneNumber(phone, appVerifier),
-        timeoutPromise
-      ]);
+      const confirmationResult = await firebase.auth().signInWithPhoneNumber(phone, appVerifier);
       window.confirmationResult = confirmationResult;
       setStep(1);
       setMessage('OTP sent!');
@@ -95,13 +71,9 @@ function App() {
 
   const verifyOTP = async () => {
     setMessage('');
-    const timeoutPromise = createTimeoutPromise();
 
     try {
-      const result = await Promise.race([
-        window.confirmationResult.confirm(otp),
-        timeoutPromise
-      ]);
+      const result = await window.confirmationResult.confirm(otp);
       const idToken = await result.user.getIdToken();
       const response = await fetch('http://localhost:8080/verify-id-token', {
         method: 'POST',
@@ -114,12 +86,6 @@ function App() {
     } catch (error) {
       handleError(error);
     }
-  };
-
-  const createTimeoutPromise = () => {
-    return new Promise((_, reject) =>
-      setTimeout(() => reject({ code: 'timeout', message: 'Request timed out. Please try again.' }), 150000)
-    );
   };
 
   return (
@@ -147,8 +113,7 @@ function App() {
               onChange={e => setPhone(e.target.value)}
               className="auth-input"
             />
-            {showRecaptcha && <div id="recaptcha-container" style={{ marginBottom: 16 }}></div>}
-            {!showRecaptcha && <div id="recaptcha-container" style={{ marginBottom: 16, display: 'none' }}></div>}
+            <div id="recaptcha-container" style={{ marginBottom: 16, display: showRecaptcha ? 'block' : 'none' }}></div>
             <button
               onClick={sendOTP}
               className="auth-btn auth-btn-send"
@@ -178,6 +143,7 @@ function App() {
         {backendResp && (
           <pre className="auth-backend">{JSON.stringify(backendResp, null, 2)}</pre>
         )}
+        {errorMessage && <div className="auth-message">{errorMessage}</div>}
       </div>
     </div>
   );
