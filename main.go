@@ -26,7 +26,7 @@ func main() {
 
 	appFiber := fiber.New()
 	setupCors(appFiber)
-	appFiber.Post("/verify-id-token", verifyIDToken)
+	appFiber.Post("/verify-id-token", verifyToken)
 
 	fmt.Println("Fiber server started at :8080")
 	log.Fatal(appFiber.Listen(":8080"))
@@ -51,7 +51,7 @@ func setupCors(appFiber *fiber.App) {
 	}))
 }
 
-func verifyIDToken(c *fiber.Ctx) error {
+func verifyToken(c *fiber.Ctx) error {
 	ctx := context.Background()
 	client, err := app.Auth(ctx)
 	if err != nil {
@@ -68,9 +68,8 @@ func verifyIDToken(c *fiber.Ctx) error {
 	}
 
 	resp := map[string]interface{}{
-		"uid":    token.UID,
-		"claims": token.Claims,
-		"token":  token,
+		"token":      req.IDToken,
+		"token_data": token,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)
